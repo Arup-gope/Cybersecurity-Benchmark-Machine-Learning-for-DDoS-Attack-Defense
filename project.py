@@ -1,4 +1,3 @@
-# project2.py (with model comparison)
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,10 +22,17 @@ def clean_data(df):
     return df_clean
 
 def preprocess_data(df):
+    # Convert text labels to numerical values (0: BENIGN, 1: DDoS)
+
     df['Label'] = df['Label'].map({'BENIGN': 0, 'DDoS': 1})
+    # Separate features (X) and target variable (y)
     X = df.drop('Label', axis=1)
     y = df['Label']
+
+    # Convert to float32 to reduce memory usage
     X = X.astype(np.float32)
+
+    # Scale features using RobustScaler (resistant to outliers)
     scaler = RobustScaler()
     X_scaled = scaler.fit_transform(X)
     return X_scaled, y
@@ -37,17 +43,20 @@ def plot_distributions(df):
     plt.title('Class Distribution')
     plt.show()
 
+# Load and clean data
 if __name__ == "__main__":
     # Original Random Forest Implementation
     df = load_data()
     df_clean = clean_data(df)
     X, y = preprocess_data(df_clean)
+    # Split data into training (70%) and testing (30%) sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=42, stratify=y
     )
     
     print(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}")
     
+    # Initialize and train Random Forest
     rf_model = RandomForestClassifier(
         n_estimators=100,
         max_depth=15,
@@ -60,12 +69,14 @@ if __name__ == "__main__":
     rf_model.fit(X_train, y_train)
     rf_pred = rf_model.predict(X_test)
     
+    # Calculate performance metrics
     print("\nRandom Forest Metrics:")
     print(f"Accuracy: {accuracy_score(y_test, rf_pred):.4f}")
     print(f"F1 Score: {f1_score(y_test, rf_pred):.4f}")
     print(f"Precision: {precision_score(y_test, rf_pred):.4f}")
     print(f"Recall: {recall_score(y_test, rf_pred):.4f}")
     
+    # Plot confusion matrix
     plt.figure(figsize=(8, 6))
     sns.heatmap(confusion_matrix(y_test, rf_pred), 
                 annot=True, fmt='d', cmap='Blues',
@@ -80,6 +91,7 @@ if __name__ == "__main__":
     lr_model.fit(X_train, y_train)
     lr_pred = lr_model.predict(X_test)
     
+    # Calculate performance metrics
     print("\nLogistic Regression Metrics:")
     print(f"Accuracy: {accuracy_score(y_test, lr_pred):.4f}")
     print(f"F1 Score: {f1_score(y_test, lr_pred):.4f}")
@@ -106,6 +118,7 @@ if __name__ == "__main__":
     nn_model.fit(X_train, y_train)
     nn_pred = nn_model.predict(X_test)
     
+    # Calculate performance metrics
     print("\nNeural Network Metrics:")
     print(f"Accuracy: {accuracy_score(y_test, nn_pred):.4f}")
     print(f"F1 Score: {f1_score(y_test, nn_pred):.4f}")
